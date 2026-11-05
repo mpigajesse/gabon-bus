@@ -1,0 +1,47 @@
+# Garde éveillées les deux démos phares du portfolio (NaoService et Gabon Bus)
+# pendant les heures où recruteurs et chefs de projet les consultent.
+#
+# Pourquoi : sur l'offre gratuite de Render, un service s'endort après 15 min
+# sans requête et met ~50 s à se réveiller. Un appel toutes les 10 min le
+# garde éveillé (marge contre les retards du planificateur de GitHub).
+#
+# Pourquoi pas 24 h/24 : les 750 h gratuites mensuelles sont partagées par
+# tous les services de l'espace Render. Deux services en continu en
+# consommeraient ~1 460. Plage retenue : lun-ven 7 h-21 h à Libreville et
+# Casablanca (UTC+1), soit ~616 h ; les autres démos gardent ~130 h pour se
+# réveiller à la demande depuis le portfolio.
+#
+# Ce fichier vit dans ce dépôt public : les minutes d'Actions y sont gratuites
+# et illimitées (le portfolio est un dépôt privé, au quota limité).
+# GitHub suspend les tâches planifiées d'un dépôt public sans activité depuis
+# 60 jours : relancer alors le workflow depuis l'onglet Actions.
+
+name: Garder les démos éveillées
+
+on:
+  schedule:
+    # Minutes */10, heures 6-19 UTC = 7 h-20 h 59 à UTC+1, du lundi au vendredi.
+    - cron: "*/10 6-19 * * 1-5"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: garder-demos-eveillees
+  cancel-in-progress: true
+
+jobs:
+  appeler:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Appeler les démos
+        run: |
+          for url in \
+            "https://saascoiffure.onrender.com/api/v1/public/salon/salon-mireille/services/" \
+            "https://gabon-bus.onrender.com/"
+          do
+            # Jusqu'à 90 s : si le service dormait, on attend la fin du réveil.
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 90 --retry 2 --retry-delay 10 "$url" || true)
+            echo "$url -> ${code:-échec}"
+          done
