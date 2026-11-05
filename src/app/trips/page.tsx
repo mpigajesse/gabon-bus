@@ -29,7 +29,7 @@ export default function TripsPage() {
 
   const handleSelectTrip = (trip: Trip) => {
     setSelectedTrip(trip);
-    router.push(`/trips/${trip.id}`);
+    router.push(`/trips/detail?id=${encodeURIComponent(trip.id)}`);
   };
 
   return (

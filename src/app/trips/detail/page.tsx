@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { formaterMontant } from '@/lib/utils';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useBooking } from '@/components/BookingContext';
 import { getTripById } from '@/lib/api';
 import { SeatSelector } from '@/components/SeatSelector';
@@ -11,9 +11,21 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Bus, Clock, MapPin, ArrowRight, ChevronLeft, Ticket, QrCode } from 'lucide-react';
 import { toast } from 'sonner';
 
+// Page d'un trajet : /trips/detail?id=… (et non plus /trips/[id]).
+// Les trajets de la démo sont générés pour chaque date : leurs identifiants
+// ne peuvent pas être connus au build, or le site est publié en export
+// statique (voir next.config.ts). Un paramètre de requête n'a pas ce besoin.
 export default function TripDetailsPage() {
+  return (
+    <Suspense fallback={null}>
+      <TripDetails />
+    </Suspense>
+  );
+}
+
+function TripDetails() {
   const router = useRouter();
-  const { id } = useParams();
+  const id = useSearchParams().get('id') ?? '';
   const { selectedTrip, setSelectedTrip, selectedSeats, setSelectedSeats, isRehydrated } = useBooking();
   const [loading, setLoading] = useState(true);
 
