@@ -2,7 +2,7 @@
 
 Réservation de billets de car interurbains au Gabon : recherche d'un trajet, choix du siège, paiement par mobile money et billet à présenter à l'embarquement.
 
-**Démo en ligne : [gabon-bus.eu.cc](https://gabon-bus.eu.cc)**
+**Démo en ligne : [gabon-bus-statique.onrender.com](https://gabon-bus-statique.onrender.com)**
 Trajets, compagnies et paiements sont simulés : aucune réservation n'est réelle et aucun paiement n'est débité.
 
 ---
