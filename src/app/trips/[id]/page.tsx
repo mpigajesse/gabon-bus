@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { formaterMontant } from '@/lib/utils';
 import { useRouter, useParams } from 'next/navigation';
 import { useBooking } from '@/components/BookingContext';
 import { getTripById } from '@/lib/api';
@@ -200,7 +201,7 @@ export default function TripDetailsPage() {
                     <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
                       <p className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Total à payer</p>
                       <p className="text-xl font-black text-primary tracking-tighter">
-                        {(selectedTrip.price * selectedSeats.length).toLocaleString()} <span className="text-[10px] font-bold">FCFA</span>
+                        {formaterMontant(selectedTrip.price * selectedSeats.length)} <span className="text-[10px] font-bold">FCFA</span>
                       </p>
                     </div>
                   </div>

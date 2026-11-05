@@ -1,6 +1,7 @@
 'use client';
 
 import { Trip } from '@/lib/types';
+import { formaterMontant } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Bus, Clock, MapPin, Users, ChevronRight, Wifi, Zap, Star } from 'lucide-react';
@@ -40,7 +41,7 @@ export function TripCard({ trip, onSelect }: TripCardProps) {
 
               <div className="mt-4 sm:mt-0">
                 <div className="text-xl font-black text-primary leading-none">
-                  {trip.price.toLocaleString()} <span className="text-[10px] font-bold text-zinc-400">FCFA</span>
+                  {formaterMontant(trip.price)} <span className="text-[10px] font-bold text-zinc-400">FCFA</span>
                 </div>
               </div>
             </div>

@@ -22,22 +22,29 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
+import { toast } from 'sonner';
+
+// Le back-office n'est qu'une maquette dans la démo publique : chaque action
+// le dit plutôt que de rester sans effet au clic.
+const indisponibleEnDemo = () =>
+  toast.info('Fonction réservée aux transporteurs, désactivée dans la démo.');
 
 export default function DashboardPage() {
   // Mock data for dashboard
   const stats = [
-    { name: 'Passagers aujourd\'hui', value: '42', change: '+12%', icon: Users, color: 'text-blue-600' },
-    { name: 'Billets vendus', value: '1,284', change: '+5.2%', icon: Ticket, color: 'text-green-600' },
-    { name: 'Revenus (FCFA)', value: '6,420,000', change: '+8.4%', icon: TrendingUp, color: 'text-primary' },
-    { name: 'Trajets actifs', value: '12', change: '0%', icon: Bus, color: 'text-purple-600' },
+    { name: 'Passagers aujourd\'hui', value: '42', change: '+12 %', icon: Users, color: 'text-blue-600' },
+    { name: 'Billets vendus', value: '1 284', change: '+5,2 %', icon: Ticket, color: 'text-green-600' },
+    { name: 'Revenus (FCFA)', value: '6 420 000', change: '+8,4 %', icon: TrendingUp, color: 'text-primary' },
+    { name: 'Trajets actifs', value: '12', change: '0 %', icon: Bus, color: 'text-purple-600' },
   ];
 
   const recentReservations = [
-    { id: 'BK-7214', customer: 'Marlène Ogoula', trip: 'LBV → NTOUM', date: 'Aujourd\'hui, 08:00', status: 'Confirmé', amount: '5,000 FCFA' },
-    { id: 'BK-7213', customer: 'Jean-Pierre Mba', trip: 'NTOUM → LBV', date: 'Aujourd\'hui, 14:30', status: 'Confirmé', amount: '5,000 FCFA' },
-    { id: 'BK-7212', customer: 'Alice Ndong', trip: 'LBV → NTOUM', date: 'Demain, 10:00', status: 'En attente', amount: '4,500 FCFA' },
-    { id: 'BK-7211', customer: 'Paul Biyoghe', trip: 'LBV → NTOUM', date: 'Hier, 16:00', status: 'Confirmé', amount: '5,000 FCFA' },
-    { id: 'BK-7210', customer: 'Sandrine Meye', trip: 'NTOUM → LBV', date: 'Hier, 09:30', status: 'Annulé', amount: '5,000 FCFA' },
+    { id: 'BK-7214', customer: 'Marlène Ogoula', trip: 'LBV → NTOUM', date: 'Aujourd\'hui, 08:00', status: 'Confirmé', amount: '5 000 FCFA' },
+    { id: 'BK-7213', customer: 'Jean-Pierre Mba', trip: 'NTOUM → LBV', date: 'Aujourd\'hui, 14:30', status: 'Confirmé', amount: '5 000 FCFA' },
+    { id: 'BK-7212', customer: 'Alice Ndong', trip: 'LBV → NTOUM', date: 'Demain, 10:00', status: 'En attente', amount: '4 500 FCFA' },
+    { id: 'BK-7211', customer: 'Paul Biyoghe', trip: 'LBV → NTOUM', date: 'Hier, 16:00', status: 'Confirmé', amount: '5 000 FCFA' },
+    { id: 'BK-7210', customer: 'Sandrine Meye', trip: 'NTOUM → LBV', date: 'Hier, 09:30', status: 'Annulé', amount: '5 000 FCFA' },
   ];
 
   return (
@@ -46,13 +53,16 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Tableau de bord Admin</h1>
           <p className="text-zinc-500">Gérez vos trajets et visualisez vos réservations en temps réel.</p>
+          <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">
+            Données de démonstration — aucune réservation réelle
+          </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2" onClick={indisponibleEnDemo}>
             <Calendar className="h-4 w-4" />
             Rapport PDF
           </Button>
-          <Button className="flex items-center gap-2">
+          <Button className="flex items-center gap-2" onClick={indisponibleEnDemo}>
             <Plus className="h-4 w-4" />
             Nouveau trajet
           </Button>
@@ -96,7 +106,7 @@ export default function DashboardPage() {
               <CardTitle>Réservations récentes</CardTitle>
               <CardDescription>Les 5 dernières transactions sur la plateforme.</CardDescription>
             </div>
-            <Button variant="ghost" size="sm">Tout voir</Button>
+            <Button variant="ghost" size="sm" onClick={indisponibleEnDemo}>Tout voir</Button>
           </CardHeader>
           <CardContent>
             <Table>
@@ -144,15 +154,15 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
-              <Button variant="outline" className="w-full justify-start gap-3 h-12">
+              <Button variant="outline" className="w-full justify-start gap-3 h-12" onClick={indisponibleEnDemo}>
                 <Bus className="h-5 w-5 text-primary" />
                 <span>Gérer les véhicules</span>
               </Button>
-              <Button variant="outline" className="w-full justify-start gap-3 h-12">
+              <Button variant="outline" className="w-full justify-start gap-3 h-12" onClick={indisponibleEnDemo}>
                 <Ticket className="h-5 w-5 text-primary" />
                 <span>Scanner un billet (QR)</span>
               </Button>
-              <Button variant="outline" className="w-full justify-start gap-3 h-12">
+              <Button variant="outline" className="w-full justify-start gap-3 h-12" onClick={indisponibleEnDemo}>
                 <Users className="h-5 w-5 text-primary" />
                 <span>Liste d'embarquement</span>
               </Button>
@@ -163,7 +173,9 @@ export default function DashboardPage() {
               <p className="text-xs text-zinc-500 leading-relaxed">
                 Besoin d'aide pour configurer vos nouveaux trajets ? Contactez notre équipe support dédiée aux partenaires.
               </p>
-              <Button className="w-full">Contacter GabonBus</Button>
+              <Button className="w-full" asChild>
+                <Link href="/aide">Contacter GabonBus</Link>
+              </Button>
             </div>
           </CardContent>
         </Card>

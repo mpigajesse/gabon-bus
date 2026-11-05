@@ -27,10 +27,10 @@ function empreinte(texte: string): number {
   return h;
 }
 
-/** Horaires fictifs pour un trajet et une date (AAAA-MM-JJ). */
-export function trajetsFictifs(from: string, to: string, date: string): Trip[] {
+/** Tous les horaires fictifs d'une date, passés compris : l'identifiant d'un trajet en dépend. */
+function genererTrajets(from: string, to: string, date: string): Trip[] {
   if (!from || !to || from === to) return [];
-  const jour = date || new Date().toISOString().split('T')[0];
+  const jour = date || dateLocale();
   const base = empreinte(`${from}>${to}`);
   const dureeMin = 90 + (base % 8) * 45; // 1 h 30 à 6 h 45
   const prix = 5000 + (base % 9) * 2500;
@@ -53,14 +53,32 @@ export function trajetsFictifs(from: string, to: string, date: string): Trip[] {
   });
 }
 
+/**
+ * Horaires fictifs réservables pour un trajet et une date (AAAA-MM-JJ).
+ * Un départ déjà passé n'est pas proposé : avant, l'après-midi, la démo
+ * vendait encore le car de 06:30 du jour même.
+ */
+export function trajetsFictifs(from: string, to: string, date: string): Trip[] {
+  const maintenant = Date.now();
+  return genererTrajets(from, to, date).filter(
+    (trajet) => new Date(trajet.departureTime).getTime() > maintenant,
+  );
+}
+
+/** Date (AAAA-MM-JJ, heure locale) décalée de `jours` par rapport à aujourd'hui. */
+export function dateLocale(jours = 0): string {
+  const d = new Date();
+  d.setDate(d.getDate() + jours);
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const jj = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-${jj}`;
+}
+
 function trajetFictifParId(id: string): Trip | null {
   const [from, to, jour, rang] = decodeURIComponent(id).split('~');
   if (!from || !to || !jour) return null;
-  return trajetsFictifs(from, to, jour)[Number(rang) || 0] ?? null;
+  return genererTrajets(from, to, jour)[Number(rang) || 0] ?? null;
 }
-
-// Conservé pour compatibilité avec d'éventuels imports.
-export const mockTrips: Trip[] = trajetsFictifs('Libreville', 'Ntoum', '');
 
 export const getTrips = async (from: string, to: string, date: string): Promise<Trip[]> => {
   if (MODE_DEMO) return trajetsFictifs(from, to, date);

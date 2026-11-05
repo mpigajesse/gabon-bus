@@ -1,6 +1,8 @@
 'use client';
 
-import { mockTrips } from '@/lib/api';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { dateLocale, getTrips } from '@/lib/api';
 import { TripCard } from '@/components/TripCard';
 import { useBooking } from '@/components/BookingContext';
 import { useRouter } from 'next/navigation';
@@ -11,6 +13,19 @@ import { Button } from '@/components/ui/button';
 export default function TripsPage() {
   const router = useRouter();
   const { setSelectedTrip } = useBooking();
+  const [trips, setTrips] = useState<Trip[]>([]);
+
+  // Calculé dans le navigateur : l'ancienne liste importée était évaluée au
+  // build de cette page statique, donc figée au jour du déploiement. En fin
+  // de journée, on montre les départs du lendemain.
+  useEffect(() => {
+    const charger = async () => {
+      let resultats = await getTrips('Libreville', 'Ntoum', dateLocale());
+      if (resultats.length === 0) resultats = await getTrips('Libreville', 'Ntoum', dateLocale(1));
+      setTrips(resultats);
+    };
+    charger();
+  }, []);
 
   const handleSelectTrip = (trip: Trip) => {
     setSelectedTrip(trip);
@@ -24,14 +39,16 @@ export default function TripsPage() {
           <h1 className="text-4xl font-bold tracking-tight mb-2">Tous les trajets</h1>
           <p className="text-zinc-500">Consultez tous les départs disponibles à travers le Gabon.</p>
         </div>
-        <Button variant="outline" className="flex items-center gap-2">
-          <Filter className="h-4 w-4" />
-          Filtrer les résultats
+        <Button variant="outline" className="flex items-center gap-2" asChild>
+          <Link href="/">
+            <Filter className="h-4 w-4" />
+            Filtrer les résultats
+          </Link>
         </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {mockTrips.map((trip) => (
+        {trips.map((trip) => (
           <TripCard key={trip.id} trip={trip} onSelect={handleSelectTrip} />
         ))}
       </div>
@@ -43,7 +60,9 @@ export default function TripsPage() {
           Nous étendons progressivement notre réseau vers les autres provinces du Gabon. 
           Revenez bientôt pour plus de destinations !
         </p>
-        <Button variant="secondary">Être informé des nouvelles lignes</Button>
+        <Button variant="secondary" asChild>
+          <Link href="/aide">Être informé des nouvelles lignes</Link>
+        </Button>
       </section>
     </div>
   );

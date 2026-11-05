@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Bus, Facebook, Twitter, Instagram, Mail, Phone, MapPin } from 'lucide-react';
+import { Bus, Mail, Phone, MapPin } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -18,22 +18,15 @@ export function Footer() {
             <p className="text-zinc-400 text-sm leading-relaxed max-w-xs">
               L'excellence du transport interprovincial au Gabon. Nous connectons les familles et les opportunités à travers les 9 provinces.
             </p>
-            <div className="flex gap-4">
-              {[Facebook, Twitter, Instagram].map((Icon, i) => (
-                <a key={i} href="#" className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-zinc-400 hover:bg-primary hover:text-white hover:border-primary transition-all">
-                  <Icon className="h-4 w-4" />
-                </a>
-              ))}
-            </div>
           </div>
           
           <div>
             <h3 className="text-sm font-black uppercase tracking-[0.2em] text-primary mb-8">Navigation</h3>
             <ul className="space-y-4 text-sm text-zinc-400">
               <li><Link href="/" className="hover:text-white transition-colors">Rechercher un trajet</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Nos Destinations</Link></li>
+              <li><Link href="/#destinations" className="hover:text-white transition-colors">Nos Destinations</Link></li>
               <li><Link href="/dashboard" className="hover:text-white transition-colors">Administration</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">À Propos</Link></li>
+              <li><Link href="/confirmation" className="hover:text-white transition-colors">Mon billet</Link></li>
             </ul>
           </div>
           
