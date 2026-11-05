@@ -1,5 +1,6 @@
 'use client';
 
+import { toast } from 'sonner';
 import { 
   Accordion, 
   AccordionContent, 
@@ -57,7 +58,7 @@ export default function HelpPage() {
         <div className="absolute inset-0 z-0">
           <img 
             src="https://images.unsplash.com/photo-1523805081446-ed9a768297a0?auto=format&fit=crop&q=80&w=2000" 
-            alt="Gabon Landscape" 
+            alt="Paysage du Gabon" 
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-zinc-900/60 backdrop-blur-[2px]" />
@@ -167,7 +168,10 @@ export default function HelpPage() {
               </div>
 
               <div className="pt-6 border-t border-zinc-100">
-                <Button className="w-full bg-zinc-950 text-white hover:bg-zinc-800 h-14 rounded-2xl font-black uppercase tracking-widest text-xs gap-2">
+                <Button
+                  className="w-full bg-zinc-950 text-white hover:bg-zinc-800 h-14 rounded-2xl font-black uppercase tracking-widest text-xs gap-2"
+                  onClick={() => toast.info('Le chat en direct n\'est pas disponible dans la démo.')}
+                >
                   <MessageCircle className="h-5 w-5" />
                   Chat en direct
                 </Button>

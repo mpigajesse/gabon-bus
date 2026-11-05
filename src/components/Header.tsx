@@ -35,7 +35,7 @@ export function Header() {
           <nav className="hidden md:flex items-center gap-8">
               {[
                 { label: 'Rechercher', href: '/' },
-                { label: 'Récupérer mon billet', href: '/tickets/retrieve' },
+                { label: 'Mon billet', href: '/confirmation' },
                 { label: 'Aide', href: '/aide' },
               ].map((link) => (
               <Link 

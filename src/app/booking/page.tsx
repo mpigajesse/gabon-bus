@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { formaterMontant } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { useBooking } from '@/components/BookingContext';
 import { Button } from '@/components/ui/button';
@@ -217,7 +218,7 @@ export default function BookingPage() {
                 <div className="flex justify-between items-center bg-zinc-50 -mx-6 px-6 py-4 mt-2">
                   <span className="text-sm font-bold text-zinc-600">Total à payer</span>
                   <span className="text-lg font-black text-primary">
-                    {(selectedTrip.price * selectedSeats.length).toLocaleString()} FCFA
+                    {formaterMontant(selectedTrip.price * selectedSeats.length)} FCFA
                   </span>
                 </div>
               </div>

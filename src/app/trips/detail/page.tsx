@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { formaterMontant } from '@/lib/utils';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useBooking } from '@/components/BookingContext';
 import { getTripById } from '@/lib/api';
 import { SeatSelector } from '@/components/SeatSelector';
@@ -10,9 +11,21 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Bus, Clock, MapPin, ArrowRight, ChevronLeft, Ticket, QrCode } from 'lucide-react';
 import { toast } from 'sonner';
 
+// Page d'un trajet : /trips/detail?id=… (et non plus /trips/[id]).
+// Les trajets de la démo sont générés pour chaque date : leurs identifiants
+// ne peuvent pas être connus au build, or le site est publié en export
+// statique (voir next.config.ts). Un paramètre de requête n'a pas ce besoin.
 export default function TripDetailsPage() {
+  return (
+    <Suspense fallback={null}>
+      <TripDetails />
+    </Suspense>
+  );
+}
+
+function TripDetails() {
   const router = useRouter();
-  const { id } = useParams();
+  const id = useSearchParams().get('id') ?? '';
   const { selectedTrip, setSelectedTrip, selectedSeats, setSelectedSeats, isRehydrated } = useBooking();
   const [loading, setLoading] = useState(true);
 
@@ -200,7 +213,7 @@ export default function TripDetailsPage() {
                     <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
                       <p className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Total à payer</p>
                       <p className="text-xl font-black text-primary tracking-tighter">
-                        {(selectedTrip.price * selectedSeats.length).toLocaleString()} <span className="text-[10px] font-bold">FCFA</span>
+                        {formaterMontant(selectedTrip.price * selectedSeats.length)} <span className="text-[10px] font-bold">FCFA</span>
                       </p>
                     </div>
                   </div>

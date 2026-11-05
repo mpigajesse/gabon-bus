@@ -1,31 +1,45 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
+import { formaterMontant } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { useBooking } from '@/components/BookingContext';
 import { QRCode } from '@/components/QRCode';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle2, Download, Home, Printer, Share2 } from 'lucide-react';
+import { CheckCircle2, Download, Home, Printer, Share2, Ticket } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ConfirmationPage() {
   const router = useRouter();
-  const { currentBooking, resetBooking } = useBooking();
+  const { currentBooking, resetBooking, isRehydrated } = useBooking();
   const contentRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!currentBooking) {
-      router.push('/');
-    }
-  }, [currentBooking, router]);
 
   const handlePrint = () => {
     window.print();
   };
 
+  // Pas de génération de PDF côté serveur en démo : la boîte d'impression du
+  // navigateur propose « Enregistrer au format PDF ». Avant, le bouton
+  // annonçait un téléchargement qui n'avait jamais lieu.
   const handleDownload = () => {
-    toast.success("Téléchargement du billet en cours...");
+    toast.info('Choisissez « Enregistrer au format PDF » comme imprimante.');
+    window.print();
+  };
+
+  const handleShare = async () => {
+    if (!currentBooking) return;
+    const texte = `Billet GabonBus ${currentBooking.id.toUpperCase()} : ${currentBooking.trip.from} → ${currentBooking.trip.to}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'Mon billet GabonBus', text: texte });
+      } else {
+        await navigator.clipboard.writeText(texte);
+        toast.success('Référence du billet copiée.');
+      }
+    } catch {
+      // Partage annulé par l'utilisateur : rien à signaler.
+    }
   };
 
   const handleNewBooking = () => {
@@ -33,7 +47,28 @@ export default function ConfirmationPage() {
     router.push('/');
   };
 
-  if (!currentBooking) return null;
+  // Le billet est relu depuis le stockage local après le premier rendu :
+  // rediriger avant cette relecture renvoyait à l'accueil à chaque
+  // rechargement de la page. Sans billet, on l'explique au lieu de rediriger.
+  if (!isRehydrated) return null;
+
+  if (!currentBooking) {
+    return (
+      <div className="container px-4 py-24 md:px-8 max-w-xl mx-auto text-center">
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-zinc-100 mb-6 text-zinc-500">
+          <Ticket className="h-10 w-10" />
+        </div>
+        <h1 className="text-3xl font-bold mb-3">Aucun billet sur cet appareil</h1>
+        <p className="text-zinc-500 mb-8">
+          Votre dernier billet réservé depuis ce navigateur s&apos;affiche ici. Réservez un trajet
+          pour obtenir votre billet électronique et son QR code.
+        </p>
+        <Button size="lg" onClick={() => router.push('/')}>
+          Rechercher un trajet
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="container px-4 py-12 md:px-8 max-w-2xl mx-auto">
@@ -99,7 +134,7 @@ export default function ConfirmationPage() {
 
             <div className="border-t pt-6 text-center">
               <p className="text-[10px] font-bold uppercase text-zinc-400 mb-1">Montant payé</p>
-              <p className="text-xl font-black text-primary">{currentBooking.totalAmount.toLocaleString()} FCFA</p>
+              <p className="text-xl font-black text-primary">{formaterMontant(currentBooking.totalAmount)} FCFA</p>
               <p className="text-xs text-zinc-500 mt-1">Payé via {currentBooking.paymentMethod === 'airtel_money' ? 'Airtel Money' : 'Moov Money'}</p>
             </div>
           </CardContent>
@@ -120,7 +155,7 @@ export default function ConfirmationPage() {
           <Download className="h-5 w-5" />
           <span className="text-xs font-bold">PDF</span>
         </Button>
-        <Button variant="outline" className="flex flex-col h-auto py-4 gap-2">
+        <Button variant="outline" onClick={handleShare} className="flex flex-col h-auto py-4 gap-2">
           <Share2 className="h-5 w-5" />
           <span className="text-xs font-bold">Partager</span>
         </Button>

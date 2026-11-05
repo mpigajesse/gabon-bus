@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { TripCard } from '@/components/TripCard';
-import { getTrips } from '@/lib/api';
+import { dateLocale, getTrips } from '@/lib/api';
 import { Trip } from '@/lib/types';
 import { useBooking } from '@/components/BookingContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, MapPin, Calendar, Bus, ArrowRightLeft, ShieldCheck, Smartphone, Zap, ChevronRight, Star, Globe, TrendingUp, Award, Clock } from 'lucide-react';
+import { Search, MapPin, Calendar, Bus, ArrowRightLeft, ShieldCheck, Smartphone, Zap, ChevronRight, Globe, TrendingUp, Award, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
@@ -27,13 +27,18 @@ export default function HomePage() {
 
   useEffect(() => {
     setMounted(true);
-    const today = new Date().toISOString().split('T')[0];
-    setDate(today);
-    
     const fetchInitialTrips = async () => {
       setLoading(true);
       try {
-        const results = await getTrips(from, to, today);
+        // En fin de journée il ne reste plus de départ : on propose ceux de
+        // demain plutôt qu'une liste vide sous « Prochains départs ».
+        let jour = dateLocale();
+        let results = await getTrips(from, to, jour);
+        if (results.length === 0) {
+          jour = dateLocale(1);
+          results = await getTrips(from, to, jour);
+        }
+        setDate(jour);
         setTrips(results);
       } catch (error) {
         console.error("Initial fetch failed", error);
@@ -66,9 +71,33 @@ export default function HomePage() {
     }
   };
 
+  // Carte « destination populaire » : lance la recherche vers cette ville.
+  const rechercherVers = async (ville: string) => {
+    const depart = from === ville ? 'Libreville' : from;
+    const arrivee = ville === depart ? 'Ntoum' : ville;
+    setFrom(depart);
+    setTo(arrivee);
+    setLoading(true);
+    try {
+      const jour = date || dateLocale();
+      let results = await getTrips(depart, arrivee, jour);
+      let jourRetenu = jour;
+      if (results.length === 0) {
+        jourRetenu = dateLocale(1);
+        results = await getTrips(depart, arrivee, jourRetenu);
+      }
+      setDate(jourRetenu);
+      setTrips(results);
+      setHasSearched(true);
+      document.getElementById('search-results')?.scrollIntoView({ behavior: 'smooth' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSelectTrip = (trip: Trip) => {
     setSelectedTrip(trip);
-    router.push(`/trips/${trip.id}`);
+    router.push(`/trips/detail?id=${encodeURIComponent(trip.id)}`);
   };
 
   const swapLocations = () => {
@@ -85,7 +114,7 @@ export default function HomePage() {
         <div className="absolute inset-0 z-0 overflow-hidden">
           <img 
             src="https://images.unsplash.com/photo-1523805081446-ed9a768297a0?auto=format&fit=crop&q=80&w=2000" 
-            alt="Gabon Landscape" 
+            alt="Paysage du Gabon" 
             className="w-full h-full object-cover scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-primary/80 via-accent/10 to-secondary/80 z-10 opacity-70" />
@@ -245,7 +274,7 @@ export default function HomePage() {
         <div className="flex-1 bg-secondary" />
       </div>
 
-      <section className="pt-32 pb-20 bg-zinc-50">
+      <section id="destinations" className="pt-32 pb-20 bg-zinc-50">
         <div className="container px-4 md:px-8 max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
             <div className="space-y-3">
@@ -254,18 +283,36 @@ export default function HomePage() {
               </h2>
               <p className="text-zinc-500 text-lg font-medium">Découvrez les joyaux du Gabon avec nos trajets réguliers.</p>
             </div>
-            <Button variant="ghost" className="text-primary font-black uppercase tracking-widest flex items-center gap-2 hover:bg-primary/5">
+            <Button
+              variant="ghost"
+              className="text-primary font-black uppercase tracking-widest flex items-center gap-2 hover:bg-primary/5"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            >
               Voir tout <ArrowRightLeft className="h-4 w-4" />
             </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { city: "Lambaréné", img: "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?auto=format&fit=crop&q=80&w=800", price: "15,000" },
-              { city: "Port-Gentil", img: "https://images.unsplash.com/photo-1444723121867-7a241cacace9?auto=format&fit=crop&q=80&w=800", price: "25,000" },
-              { city: "Franceville", img: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&q=80&w=800", price: "30,000" },
+              { city: "Lambaréné", img: "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?auto=format&fit=crop&q=80&w=800", price: "15 000" },
+              { city: "Port-Gentil", img: "https://images.unsplash.com/photo-1444723121867-7a241cacace9?auto=format&fit=crop&q=80&w=800", price: "25 000" },
+              { city: "Franceville", img: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&q=80&w=800", price: "30 000" },
             ].map((dest, i) => (
-              <motion.div key={i} whileHover={{ y: -8 }} className="group cursor-pointer">
+              <motion.div
+                key={i}
+                whileHover={{ y: -8 }}
+                className="group cursor-pointer"
+                role="button"
+                tabIndex={0}
+                aria-label={`Voir les trajets vers ${dest.city}`}
+                onClick={() => rechercherVers(dest.city)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    rechercherVers(dest.city);
+                  }
+                }}
+              >
                 <div className="relative aspect-[16/10] md:aspect-[4/5] rounded-[2rem] overflow-hidden shadow-lg">
                   <img src={dest.img} alt={dest.city} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -382,26 +429,10 @@ export default function HomePage() {
               <div className="aspect-[3/4] rounded-[3rem] overflow-hidden border border-zinc-100 shadow-2xl relative">
                 <img 
                   src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=1000" 
-                  alt="Modern Gabon Transport" 
+                  alt="Car de transport interprovincial au Gabon" 
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
-                
-                <div className="absolute bottom-8 left-8 right-8 p-8 rounded-[2rem] bg-white/90 backdrop-blur-2xl border border-zinc-100 shadow-lg">
-                  <div className="flex flex-col gap-4">
-                    <div className="flex gap-1">
-                      {[1,2,3,4,5].map(i => <Star key={i} className="h-4 w-4 text-accent fill-accent" />)}
-                    </div>
-                    <p className="text-xl font-black text-zinc-950 italic leading-tight">"Une révolution pour le transport entre nos provinces. Bravo !"</p>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center font-black text-white text-sm">M</div>
-                      <div>
-                        <p className="font-bold text-zinc-950 text-base">Marc Obiang</p>
-                        <p className="text-zinc-400 text-[10px] font-black uppercase tracking-widest">Voyageur Affaires</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -440,6 +471,7 @@ export default function HomePage() {
                   size="lg" 
                   variant="outline" 
                   className="h-14 px-10 rounded-2xl border-zinc-200 text-zinc-600 hover:bg-zinc-50 font-black text-base"
+                  onClick={() => document.getElementById('destinations')?.scrollIntoView({ behavior: 'smooth' })}
                 >
                   NOS TARIFS
                 </Button>
@@ -449,18 +481,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-16 border-y border-zinc-100 bg-white">
-        <div className="container px-4 md:px-8 max-w-7xl mx-auto">
-          <p className="text-center text-zinc-400 font-black uppercase tracking-[0.4em] mb-10 text-[10px]">Ils nous font confiance</p>
-          <div className="flex flex-wrap justify-center items-center gap-10 md:gap-20 opacity-40 grayscale">
-             <span className="text-2xl font-black text-zinc-900 tracking-tighter uppercase">TRANS-GABON</span>
-             <span className="text-2xl font-black text-zinc-900 tracking-tighter uppercase">AIRTEL</span>
-             <span className="text-2xl font-black text-zinc-900 tracking-tighter uppercase">MOOV</span>
-             <span className="text-2xl font-black text-zinc-900 tracking-tighter uppercase">TOTAL</span>
-             <span className="text-2xl font-black text-zinc-900 tracking-tighter uppercase">BGFI</span>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
